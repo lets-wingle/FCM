@@ -22,7 +22,7 @@ extension FCM {
 
     func generateJWTSync() throws -> String {
         try UnsafeTask {
-            try await generateJWT()
+            try await self.generateJWT()
         }.get()
     }
 
@@ -38,7 +38,7 @@ extension FCM {
 
     func getJWTSync() throws -> String {
         try UnsafeTask {
-            try await getJWT()
+            try await self.getJWT()
         }.get()
     }
 }

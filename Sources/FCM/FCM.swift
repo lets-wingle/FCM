@@ -4,7 +4,7 @@ import JWT
 
 // MARK: Engine
 
-public struct FCM {
+public class FCM {
     let application: Application
     
     let client: Client
@@ -14,7 +14,32 @@ public struct FCM {
     let actionsBaseURL = "https://fcm.googleapis.com/v1/projects/"
     let iidURL = "https://iid.googleapis.com/iid/v1:"
     let batchURL = "https://fcm.googleapis.com/batch"
-    
+
+    public var configuration: FCMConfiguration? {
+        didSet {
+            if let configuration, configuration.projectId != oldValue?.projectId {
+                warmUpCache(with: configuration.email)
+            }
+        }
+    }
+
+    private func warmUpCache(with email: String) {
+        if gAuth == nil {
+            gAuth = GAuthPayload(iss: email, sub: email, scope: scope, aud: audience)
+        }
+        if jwt == nil {
+            do {
+                jwt = try generateJWTSync()
+            } catch {
+                fatalError("FCM Unable to generate JWT: \(error)")
+            }
+        }
+    }
+
+    var jwt: String?
+    var accessToken: String?
+    var gAuth: GAuthPayload?
+
     // MARK: Default configurations
     
     public var apnsDefaultConfig: FCMApnsConfig<FCMApnsPayload>? {
@@ -39,83 +64,11 @@ public struct FCM {
         self.client = client
     }
 
-    public init(application: Application) {
+    public convenience init(application: Application) {
         self.init(application: application, client: application.client)
     }
 
-    public init(request: Request) {
+    public convenience init(request: Request) {
         self.init(application: request.application, client: request.client)
-    }
-}
-
-// MARK: Cache
-
-extension FCM {
-    struct ConfigurationKey: StorageKey {
-        typealias Value = FCMConfiguration
-    }
-
-    public var configuration: FCMConfiguration? {
-        get {
-            application.storage[ConfigurationKey.self]
-        }
-        nonmutating set {
-            application.storage[ConfigurationKey.self] = newValue
-            if let newValue = newValue {
-                warmUpCache(with: newValue.email)
-            }
-        }
-    }
-    
-    private func warmUpCache(with email: String) {
-        if gAuth == nil {
-            gAuth = GAuthPayload(iss: email, sub: email, scope: scope, aud: audience)
-        }
-        if jwt == nil {
-            do {
-                jwt = try generateJWTSync()
-            } catch {
-                fatalError("FCM Unable to generate JWT: \(error)")
-            }
-        }
-    }
-    
-    struct JWTKey: StorageKey {
-        typealias Value = String
-    }
-    
-    var jwt: String? {
-        get {
-            application.storage[JWTKey.self]
-        }
-        nonmutating set {
-            application.storage[JWTKey.self] = newValue
-        }
-    }
-    
-    struct AccessTokenKey: StorageKey {
-        typealias Value = String
-    }
-    
-    var accessToken: String? {
-        get {
-            application.storage[AccessTokenKey.self]
-        }
-        nonmutating set {
-            application.storage[AccessTokenKey.self] = newValue
-        }
-    }
-    
-    struct GAuthKey: StorageKey {
-        typealias Value = GAuthPayload
-    }
-    
-    var gAuth: GAuthPayload? {
-        get {
-            application.storage[GAuthKey.self]
-        }
-        nonmutating set {
-            application.storage[GAuthKey.self] = newValue
-        }
     }
 }

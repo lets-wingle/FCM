@@ -13,8 +13,8 @@ let package = Package(
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
-        .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.77.0"),
+        .package(url: "https://github.com/vapor/jwt", from: "5.0.0-rc.1"),
     ],
     targets: [
         .target(name: "FCM", dependencies: [

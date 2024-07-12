@@ -73,7 +73,7 @@ extension FCM {
         }
         if jwt == nil {
             do {
-                jwt = try generateJWT()
+                jwt = try generateJWTSync()
             } catch {
                 fatalError("FCM Unable to generate JWT: \(error)")
             }
